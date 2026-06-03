@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { RepositoriesClient } from "./RepositoriesClient";
 import { redirect } from "next/navigation";
 
+
+export const metadata = { title: "Repositories" };
+
 export default async function RepositoriesPage() {
   const session = await getServerSession(authOptions);
 

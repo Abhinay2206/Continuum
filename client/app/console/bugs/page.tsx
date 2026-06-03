@@ -6,6 +6,9 @@ import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import { BugsClient } from './BugsClient';
 
+
+export const metadata = { title: "Bug Fixes" };
+
 export default async function BugsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect('/login');

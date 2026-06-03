@@ -4,12 +4,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
-import { ArchitectureClient } from './ArchitectureClient';
+import { AgentsClient } from './AgentsClient';
 
+export const metadata = { title: "AI Agents" };
 
-export const metadata = { title: "Architecture" };
-
-export default async function ArchitecturePage() {
+export default async function AgentsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect('/login');
 
@@ -28,7 +27,7 @@ export default async function ArchitecturePage() {
     },
   });
 
-  const repos = (workspace?.repositories ?? []).map((r) => {
+  const repos = (workspace?.repositories ?? []).map((r: any) => {
     const latest = r.imports[0] ?? null;
     return {
       id: r.id,
@@ -40,5 +39,5 @@ export default async function ArchitecturePage() {
     };
   });
 
-  return <ArchitectureClient repos={repos} />;
+  return <AgentsClient repos={repos} />;
 }

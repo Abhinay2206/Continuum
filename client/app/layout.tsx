@@ -3,7 +3,7 @@ import { AuthProvider } from "@/components/providers/AuthProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Continuum — The Autonomous AI Operating System",
+  title: { template: "%s | Continuum", default: "Continuum — The Autonomous AI Operating System" },
   description: "Enter the mind of an autonomous AI software engineer.",
 };
 

@@ -6,6 +6,9 @@ import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import { PRsClient } from './PRsClient';
 
+
+export const metadata = { title: "Pull Requests" };
+
 export default async function PRsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect('/login');
