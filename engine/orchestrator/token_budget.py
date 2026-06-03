@@ -11,8 +11,8 @@ CHARS_PER_TOKEN: int = 4
 
 # Hard limits ─ leave room for the system prompt (~800 tokens) and the
 # model's output (~2048 tokens) inside an ~8K context window.
-MAX_CONTEXT_TOKENS: int = 5_000
-MAX_CONTEXT_CHARS: int = MAX_CONTEXT_TOKENS * CHARS_PER_TOKEN  # 20_000
+MAX_CONTEXT_TOKENS: int = 2_000
+MAX_CONTEXT_CHARS: int = MAX_CONTEXT_TOKENS * CHARS_PER_TOKEN  # 8_000
 
 
 class TokenBudget:

@@ -50,6 +50,34 @@ def _extract_topology(agent_results: list[dict]) -> dict:
     return {"nodes": [], "edges": []}
 
 
+def _safe_int(value) -> int | None:
+    """Convert confidence to int, handling strings, floats, and None."""
+    if value is None:
+        return None
+    try:
+        return int(float(str(value)))
+    except (TypeError, ValueError):
+        return None
+
+
+_SEV_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+
+
+def _action_sort_key(item: dict) -> tuple:
+    """
+    Sort key for action-plan items.
+    Tuple: (priority, severity_rank, -confidence)
+    All values are guaranteed ints — never raises regardless of LLM output types.
+    """
+    priority = item.get("priority", 9)
+    sev = _SEV_RANK.get(str(item.get("severity", "")).lower(), 2)
+    try:
+        conf = -int(float(str(item["confidence"]))) if item.get("confidence") is not None else 0
+    except Exception:
+        conf = 0
+    return (priority, sev, conf)
+
+
 def _critical_count(findings: list[dict]) -> int:
     return sum(
         1 for f in findings
@@ -175,76 +203,60 @@ class ActionEngine:
         """Build a prioritized, deduplicated action plan across all agents."""
         items: list[dict] = []
 
-        # Critical and high severity first
-        for finding in security:
+        def _add(finding: dict, priority: int, category: str, action_key: str, fallback: str, file_key: str = "file") -> None:
             sev = str(finding.get("severity", "medium")).lower()
-            if sev in ("critical", "high"):
-                items.append({
-                    "priority": 1,
-                    "category": "security",
-                    "action": finding.get("recommendation", finding.get("issue", "Fix security issue")),
-                    "severity": sev,
-                    "file": finding.get("file", ""),
-                })
-
-        for finding in bugs:
-            sev = str(finding.get("severity", "medium")).lower()
-            if sev in ("critical", "high"):
-                items.append({
-                    "priority": 2,
-                    "category": "bug",
-                    "action": finding.get("recommendation", finding.get("title", "Fix bug")),
-                    "severity": sev,
-                    "file": finding.get("file", ""),
-                })
-
-        for finding in dependencies:
-            sev = str(finding.get("severity", "medium")).lower()
-            if sev in ("critical", "high"):
-                items.append({
-                    "priority": 3,
-                    "category": "dependency",
-                    "action": finding.get("recommendation", f"Update {finding.get('package', 'package')}"),
-                    "severity": sev,
-                    "file": "dependency manifest",
-                })
-
-        # Medium severity
-        for finding in architecture:
-            sev = str(finding.get("severity", "medium")).lower()
+            action = finding.get("recommendation") or finding.get(action_key) or fallback
+            # Truncate very long recommendations to keep action plan scannable
+            if len(action) > 200:
+                action = action[:197] + "…"
             items.append({
-                "priority": 4,
-                "category": "architecture",
-                "action": finding.get("recommendation", finding.get("issue", "Fix architecture issue")),
+                "priority": priority,
+                "category": category,
+                "action": action,
                 "severity": sev,
-                "file": finding.get("affected_area", ""),
+                "file": finding.get(file_key, ""),
+                "confidence": _safe_int(finding.get("confidence")),
+                "effort": finding.get("effort"),
             })
 
-        for finding in review:
-            sev = str(finding.get("severity", "medium")).lower()
-            if sev != "low":
-                items.append({
-                    "priority": 5,
-                    "category": "code_quality",
-                    "action": finding.get("recommendation", finding.get("issue", "Improve code quality")),
-                    "severity": sev,
-                    "file": finding.get("file", ""),
-                })
+        # Priority 1 — critical/high security
+        for f in security:
+            if str(f.get("severity", "")).lower() in ("critical", "high"):
+                _add(f, 1, "security", "issue", "Fix security vulnerability")
 
-        # Low priority: remaining
-        for finding in bugs:
-            sev = str(finding.get("severity", "medium")).lower()
-            if sev not in ("critical", "high"):
-                items.append({
-                    "priority": 6,
-                    "category": "bug",
-                    "action": finding.get("recommendation", finding.get("title", "Fix bug")),
-                    "severity": sev,
-                    "file": finding.get("file", ""),
-                })
+        # Priority 2 — critical/high bugs
+        for f in bugs:
+            if str(f.get("severity", "")).lower() in ("critical", "high"):
+                _add(f, 2, "bug", "title", "Fix critical bug")
 
-        items.sort(key=lambda x: (x["priority"], {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(x["severity"], 2)))
-        return items[:20]  # Cap at 20 action items
+        # Priority 3 — critical/high dependencies
+        for f in dependencies:
+            if str(f.get("severity", "")).lower() in ("critical", "high"):
+                pkg = f.get("package", "package")
+                _add(f, 3, "dependency",
+                     "package", f"Update {pkg} to a patched version",
+                     "package")
+
+        # Priority 4 — architecture (all severities)
+        for f in architecture:
+            _add(f, 4, "architecture", "issue", "Fix architecture issue", "affected_area")
+
+        # Priority 5 — medium/high code review
+        for f in review:
+            if str(f.get("severity", "")).lower() != "low":
+                _add(f, 5, "code_quality", "issue", "Improve code quality")
+
+        # Priority 6 — medium/low bugs and security
+        for f in bugs:
+            if str(f.get("severity", "")).lower() not in ("critical", "high"):
+                _add(f, 6, "bug", "title", "Fix bug")
+
+        for f in security:
+            if str(f.get("severity", "")).lower() not in ("critical", "high"):
+                _add(f, 6, "security", "issue", "Address security issue")
+
+        items.sort(key=_action_sort_key)
+        return items[:20]
 
     def _build_summary(
         self,
@@ -255,22 +267,35 @@ class ActionEngine:
         agents: list,
     ) -> str:
         total = len(all_findings)
-        critical = _critical_count(all_findings)
-        grade = "excellent" if score >= 90 else "good" if score >= 75 else "needs attention" if score >= 55 else "poor"
-        agents_str = ", ".join(agents)
+        critical_high = _critical_count(all_findings)
+        critical_only = sum(1 for f in all_findings if str(f.get("severity", "")).lower() == "critical")
+        agents_run = len(agents)
+
+        if risk_level == "critical":
+            posture = (
+                f"{critical_only} critical finding{'s' if critical_only != 1 else ''} require immediate remediation. "
+                "Security and stability are at significant risk."
+            )
+        elif risk_level == "high":
+            posture = (
+                f"{critical_high} critical/high severity finding{'s' if critical_high != 1 else ''} identified. "
+                "Prioritize security and bug fixes before next release."
+            )
+        elif risk_level == "medium":
+            posture = (
+                f"{total} finding{'s' if total != 1 else ''} detected across {agents_run} agent{'s' if agents_run != 1 else ''}. "
+                "Address high-priority items; medium issues can be scheduled."
+            )
+        else:
+            posture = (
+                f"{total} finding{'s' if total != 1 else ''} detected, none critical. "
+                "Repository is in good health."
+            )
 
         return (
-            f"Repository '{repo_id}' received an overall health score of {score}/100 ({grade}). "
-            f"Analysis covered: {agents_str}. "
-            f"Total findings: {total} ({critical} critical/high severity). "
+            f"Overall health score: {score}/100. "
             f"Risk level: {risk_level.upper()}. "
-            + (
-                "Immediate action required on critical security and bug findings."
-                if risk_level in ("critical", "high")
-                else "Repository is in reasonable health with some areas for improvement."
-                if risk_level == "medium"
-                else "Repository is in good health."
-            )
+            + posture
         )
 
 

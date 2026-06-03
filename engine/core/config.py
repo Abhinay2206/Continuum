@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     embedding_model: str = "all-MiniLM-L6-v2"
     embedding_dimension: int = 384  # Dimension for all-MiniLM-L6-v2
 
-    # Workspace Config
-    workspace_dir: str = os.path.join(os.getcwd(), "workspaces")
+    # Workspace Config — anchored to the engine directory, not the shell CWD.
+    workspace_dir: str = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "workspaces")
 
     # Redis Cache (optional — set to empty string to disable)
     redis_url: str = os.getenv("REDIS_URL", "")

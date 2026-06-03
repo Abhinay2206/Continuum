@@ -107,7 +107,7 @@ class Orchestrator:
             contexts = await shared_retrieval.retrieve_for_agents(
                 repo_id,
                 uncached,
-                max_chunks_per_agent=10,
+                max_chunks_per_agent=5,
             )
 
         # ── Step 4: Static pre-analysis on retrieved chunks ───────────────────

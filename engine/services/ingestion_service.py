@@ -17,13 +17,15 @@ class IngestionService:
 
     def clone_repository(self, github_url: str, repo_id: str) -> str:
         repo_path = self.get_repo_path(repo_id)
-        
+
+        # Always ensure the parent workspace directory exists first
+        os.makedirs(settings.workspace_dir, exist_ok=True)
+
         if os.path.exists(repo_path):
             shutil.rmtree(repo_path, onerror=remove_readonly)
-            
+
         os.makedirs(repo_path, exist_ok=True)
-        
-        # Clone repo
+
         Repo.clone_from(github_url, repo_path)
         return repo_path
 

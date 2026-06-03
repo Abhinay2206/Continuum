@@ -1,65 +1,75 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import {
-  Bell,
-  Command,
-  Sparkles,
-  UserCircle,
-} from 'lucide-react';
-
+import { Bell, Command, Search, Cpu } from 'lucide-react';
 import { useUser } from '@/components/providers/UserProvider';
 
-function formatPage(pathname: string) {
-  const pathParts = pathname.split('/').filter(Boolean);
-  const currentPage = pathParts.length > 1 ? pathParts[pathParts.length - 1] : 'console';
-  return currentPage
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+const PAGE_LABELS: Record<string, string> = {
+  console:      'Dashboard',
+  repositories: 'Repositories',
+  agents:       'AI Agents',
+  bugs:         'Bug Fixes',
+  prs:          'Code Review',
+  architecture: 'Architecture',
+  monitoring:   'Monitoring',
+  chat:         'Command Line',
+  analytics:    'Analytics',
+  settings:     'Settings',
+};
+
+function getPageMeta(pathname: string): { label: string; segment: string } {
+  const parts = pathname.split('/').filter(Boolean);
+  const last = parts[parts.length - 1] ?? 'console';
+  return {
+    label: PAGE_LABELS[last] ?? last.charAt(0).toUpperCase() + last.slice(1).replace(/-/g, ' '),
+    segment: last,
+  };
 }
 
 export default function Header() {
-  const pathname    = usePathname();
-  const currentPage = formatPage(pathname);
+  const pathname = usePathname();
   const { workspace } = useUser();
+  const { label } = getPageMeta(pathname);
 
   return (
-    <header className="sticky top-0 z-40 flex h-[56px] shrink-0 items-center justify-between border-b border-white/[0.06] bg-black px-5 lg:px-6">
+    <header className="sticky top-0 z-40 flex h-[52px] shrink-0 items-center justify-between gap-4 border-b border-white/[0.06] bg-[#030303]/95 px-5 backdrop-blur-sm lg:px-6">
 
-      {/* Breadcrumb */}
-      <div className="hidden items-center gap-1.5 text-[13px] lg:flex">
-        <span className="text-zinc-600">{workspace.name}</span>
-        <span className="mx-0.5 text-zinc-700">/</span>
-        <span className="text-zinc-400">{currentPage}</span>
+      {/* Left: breadcrumb */}
+      <div className="hidden items-center gap-1.5 lg:flex shrink-0">
+        <span className="text-[12px] text-zinc-700">{workspace.name}</span>
+        <span className="text-zinc-800">/</span>
+        <span className="text-[12px] font-medium text-zinc-400">{label}</span>
       </div>
 
-      {/* Command bar */}
-      <div className="relative flex-1 md:max-w-[400px] lg:mx-8 lg:flex-none">
+      {/* Center: search */}
+      <div className="relative flex-1 md:max-w-[360px] lg:mx-6 lg:flex-none">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <Sparkles size={13} strokeWidth={2} className="text-zinc-600" />
+          <Search size={12} strokeWidth={2} className="text-zinc-700" />
         </div>
         <input
           type="text"
-          placeholder="Ask AI or search…"
-          className="h-8 w-full rounded-[6px] border border-white/[0.07] bg-white/[0.025] pl-8 pr-[60px] text-[13px] text-white outline-none placeholder:text-zinc-600 transition-colors focus:border-white/[0.15] focus:bg-white/[0.04]"
+          placeholder="Search or ask AI…"
+          className="h-7 w-full rounded-[6px] border border-white/[0.06] bg-white/[0.02] pl-7 pr-14 text-[12px] text-zinc-300 outline-none placeholder:text-zinc-700 transition-colors focus:border-white/[0.12] focus:bg-white/[0.04]"
         />
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
-          <kbd className="flex items-center gap-0.5 rounded-[4px] border border-white/[0.07] px-1.5 py-[2px] text-[10px] font-medium text-zinc-600">
-            <Command size={8} strokeWidth={2.5} />
-            K
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <kbd className="flex items-center gap-0.5 rounded-[3px] border border-white/[0.07] px-1 py-px text-[9px] font-medium text-zinc-700">
+            <Command size={7} strokeWidth={2.5} />K
           </kbd>
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-0.5">
-        <button className="relative flex h-8 w-8 items-center justify-center rounded-[6px] text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-300">
-          <Bell size={14} strokeWidth={2} />
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-rose-400" />
-        </button>
-        <button className="flex h-8 w-8 items-center justify-center rounded-[6px] text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-300">
-          <UserCircle size={15} strokeWidth={1.75} />
+      {/* Right: actions */}
+      <div className="flex shrink-0 items-center gap-0.5">
+        {/* System status */}
+        <div className="mr-1 hidden items-center gap-1.5 rounded-[5px] border border-white/[0.05] bg-white/[0.02] px-2.5 py-1 sm:flex">
+          <Cpu size={11} className="text-zinc-700" />
+          <span className="text-[10px] font-medium text-zinc-600">Online</span>
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+        </div>
+
+        <button className="relative flex h-7 w-7 items-center justify-center rounded-[5px] text-zinc-600 transition-colors hover:bg-white/[0.05] hover:text-zinc-400">
+          <Bell size={13} strokeWidth={1.75} />
+          <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-rose-400 ring-1 ring-[#030303]" />
         </button>
       </div>
     </header>
