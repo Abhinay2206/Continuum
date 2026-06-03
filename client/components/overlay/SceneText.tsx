@@ -43,7 +43,7 @@ const SCENES: SceneData[] = [
     range: [0.20, 0.32],
     position: 'left',
     headline: 'Intelligence\nemerges.',
-    sub: 'A central AI mind awakens — connecting, understanding, organizing.',
+    sub: 'A central AI mind awakens - connecting, understanding, organizing.',
     ghost: 'EMERGE',
     accentColor: '#00D4FF',
     style: 'section',
@@ -57,7 +57,7 @@ const SCENES: SceneData[] = [
     range: [0.32, 0.44],
     position: 'right',
     headline: 'Systems begin to\nunderstand themselves.',
-    sub: 'Code structure, dependencies, architecture, intent — all mapped.',
+    sub: 'Code structure, dependencies, architecture, intent - all mapped.',
     ghost: 'AWARE',
     accentColor: '#10B981',
     style: 'section',
@@ -71,7 +71,7 @@ const SCENES: SceneData[] = [
     range: [0.44, 0.56],
     position: 'left',
     headline: 'Autonomous agents\nactivate.',
-    sub: 'Code · Debug · Security · DevOps · Architecture — working in parallel.',
+    sub: 'Code · Debug · Security · DevOps · Architecture - working in parallel.',
     ghost: 'AGENTS',
     accentColor: '#10B981',
     style: 'section',
@@ -99,7 +99,7 @@ const SCENES: SceneData[] = [
     range: [0.68, 0.80],
     position: 'right',
     headline: 'Bugs fixed.\nPRs generated.\nArchitecture optimized.',
-    sub: 'Autonomous engineering — without waiting for humans.',
+    sub: 'Autonomous engineering - without waiting for humans.',
     ghost: 'AUTOMATE',
     accentColor: '#8866FF',
     style: 'section',
@@ -276,7 +276,7 @@ function BootScene({ scroll }: { scroll: number }) {
   const isActive = scroll <= 0.08;
   const pct = Math.round((scroll / 0.08) * 100);
 
-  // Command text exit: fly-up and fade when boot ends (no blur — composited transforms only)
+  // Command text exit: fly-up and fade when boot ends (no blur - composited transforms only)
   useEffect(() => {
     if (!containerRef.current) return;
     if (!isActive && wasActiveRef.current) {
@@ -344,7 +344,7 @@ function BootScene({ scroll }: { scroll: number }) {
             className="boot-ready"
             style={{ opacity: scroll >= 0.072 ? 1 : 0, transition: 'opacity 0.6s ease' }}
           >
-            <code>AUTONOMOUS AI DEVELOPER OPERATING SYSTEM — READY</code>
+            <code>AUTONOMOUS AI DEVELOPER OPERATING SYSTEM - READY</code>
           </div>
         </div>
       </div>
@@ -407,7 +407,7 @@ function SceneSlide({
       activeRef.current = false;
       gsap.killTweensOf([...words]);
 
-      // Exit: words fly out upward (transform only — no blur to keep compositing cheap)
+      // Exit: words fly out upward (transform only - no blur to keep compositing cheap)
       gsap.to(words, {
         yPercent: -65,
         opacity: 0,

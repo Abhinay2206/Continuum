@@ -18,11 +18,11 @@ const ExperienceCanvas = dynamic(
   { ssr: false, loading: () => null }
 );
 
-/** Total scroll height (in vh units) — controls pacing */
+/** Total scroll height (in vh units) - controls pacing */
 const SCROLL_HEIGHT_VH = 700;
 
-const FADE_DURATION = 700; // ms — cinematic fade-out before product reveal
-const AUTO_SCROLL_MS = 52000; // ms — duration for full auto-scroll 0 → 1
+const FADE_DURATION = 700; // ms - cinematic fade-out before product reveal
+const AUTO_SCROLL_MS = 52000; // ms - duration for full auto-scroll 0 → 1
 
 export default function Home() {
   const [scroll, setScroll] = useState(0);
@@ -80,7 +80,7 @@ export default function Home() {
 
     autoScrollRafRef.current = requestAnimationFrame(tick);
     return () => { if (autoScrollRafRef.current) cancelAnimationFrame(autoScrollRafRef.current); };
-  }, []); // mount-only — intentional
+  }, []); // mount-only - intentional
 
   const handleScroll = useCallback(() => {
     if (isCinematicFinished || isFadingOut) return;
@@ -100,7 +100,7 @@ export default function Home() {
       return;
     }
 
-    // Scroll only advances forward — preserves auto-scroll position when user isn't ahead
+    // Scroll only advances forward - preserves auto-scroll position when user isn't ahead
     setScroll(prev => {
       const next = Math.min(scrollTop / cinematicDistance, 1);
       return next > prev ? next : prev;
@@ -178,7 +178,7 @@ export default function Home() {
           {/* HTML text overlay */}
           <SceneText scroll={scroll} />
 
-          {/* Invisible scroll spacer — drives the experience */}
+          {/* Invisible scroll spacer - drives the experience */}
           <div className="scroll-spacer" style={{ height: `${SCROLL_HEIGHT_VH}vh` }} />
         </div>
       )}

@@ -16,7 +16,7 @@ export default function ExperienceCanvas({ scroll }: ExperienceCanvasProps) {
           alpha: false,
           powerPreference: 'high-performance',
           stencil: false,
-          toneMapping: 0,             // NoToneMapping — HDR shaders output above 1.0 for bloom
+          toneMapping: 0,             // NoToneMapping - HDR shaders output above 1.0 for bloom
           outputColorSpace: 'srgb',   // Correct sRGB output
         }}
         camera={{

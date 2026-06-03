@@ -8,7 +8,7 @@ import CameraRig from './CameraRig';
 import SceneObjects from './SceneObjects';
 import PostProcessing from '@/components/effects/PostProcessing';
 
-// Colors per scene milestone — sampled by scroll progress
+// Colors per scene milestone - sampled by scroll progress
 const LIGHT_STOPS: [number, THREE.Color][] = [
   [0.00, new THREE.Color('#FF1A1A')],
   [0.20, new THREE.Color('#00d4ff')],
@@ -54,7 +54,7 @@ function SceneLight({ scroll }: { scroll: number }) {
   return <pointLight ref={ref} distance={35} decay={2} />;
 }
 
-// Subtle fill light from behind/below — stays near camera
+// Subtle fill light from behind/below - stays near camera
 function FillLight() {
   const ref = useRef<THREE.PointLight>(null!);
 

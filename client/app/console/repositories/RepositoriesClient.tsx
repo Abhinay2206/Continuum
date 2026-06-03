@@ -100,7 +100,7 @@ export function RepositoriesClient({ repositories }: { repositories: any[] }) {
             Connect your first repository
           </h2>
           <p className="mt-3 text-[13px] leading-relaxed text-zinc-500">
-            Import a GitHub repository to activate your engineering intelligence layer — bug detection, security scanning, architecture analysis, and 6 specialized AI agents.
+            Import a GitHub repository to activate your engineering intelligence layer - bug detection, security scanning, architecture analysis, and 6 specialized AI agents.
           </p>
 
           {/* Feature pills */}
@@ -384,7 +384,7 @@ function RepoDetail({
         ) : (
           <div className="py-8 text-center text-[12px] text-zinc-500">
             {isIndexing
-              ? 'Indexing in progress — frameworks will appear once analysis completes.'
+              ? 'Indexing in progress - frameworks will appear once analysis completes.'
               : 'No frameworks or dependencies detected yet.'}
           </div>
         )}

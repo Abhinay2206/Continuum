@@ -115,7 +115,7 @@ export default function MonitoringPage() {
               icon={Cpu}
               tone="amber"
               title="Root cause isolated"
-              description="Missing index on orders table — full scans under concurrency."
+              description="Missing index on orders table - full scans under concurrency."
               meta="14:03"
             />
             <TimelineEvent

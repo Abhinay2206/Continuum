@@ -102,7 +102,7 @@
   --console-muted: #a1a1aa;
   --console-faint: #52525b;
 
-  /* ── Semantic accents — used sparingly ────────────────────── */
+  /* ── Semantic accents - used sparingly ────────────────────── */
   --console-emerald: #10b981;
   --console-amber: #f59e0b;
   --console-rose: #ef4444;
@@ -304,7 +304,7 @@ html { scrollbar-width: none; }
   pointer-events: none;
 }
 
-/* legacy .overlay / .scene-text / .boot-line removed — see SceneText.tsx */
+/* legacy .overlay / .scene-text / .boot-line removed - see SceneText.tsx */
 
 /* ─── Landing email / button ──────────────────────────────────── */
 
@@ -1374,7 +1374,7 @@ html { scrollbar-width: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   AWARD-WINNING CINEMATIC OVERLAY — SCENE TEXT SYSTEM
+   AWARD-WINNING CINEMATIC OVERLAY - SCENE TEXT SYSTEM
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─── Word reveal system ──────────────────────────────────────── */
@@ -1466,7 +1466,7 @@ html { scrollbar-width: none; }
   font-size: clamp(110px, 20vw, 300px);
   font-weight: 900;
   letter-spacing: -0.06em;
-  opacity: 0; /* GSAP drives this — starts hidden to prevent flash */
+  opacity: 0; /* GSAP drives this - starts hidden to prevent flash */
   pointer-events: none;
   user-select: none;
   white-space: nowrap;
@@ -1945,7 +1945,7 @@ html { scrollbar-width: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   CONTROL SECTION — "NOW CONTROL IT" CINEMATIC HANDOFF
+   CONTROL SECTION - "NOW CONTROL IT" CINEMATIC HANDOFF
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─── Character-split animation primitives ────────────────────── */
@@ -1992,7 +1992,7 @@ html { scrollbar-width: none; }
 }
 
 @keyframes controlGhostDrift {
-  /* Only animate opacity — no transform changes to avoid re-composite */
+  /* Only animate opacity - no transform changes to avoid re-composite */
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.55; }
 }

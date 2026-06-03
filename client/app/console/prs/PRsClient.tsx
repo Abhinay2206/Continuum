@@ -324,7 +324,7 @@ function CleanState() {
     <div className="flex min-h-[40vh] flex-col items-center justify-center rounded-[7px] border border-console-border">
       <CheckCircle2 size={32} className="mb-3 text-emerald-400" />
       <p className="text-[14px] font-medium text-console-text">No code review findings</p>
-      <p className="mt-1 text-[12px] text-console-faint">Your code looks clean — great work!</p>
+      <p className="mt-1 text-[12px] text-console-faint">Your code looks clean - great work!</p>
     </div>
   );
 }

@@ -54,7 +54,7 @@ const wordVariant = {
 const VIEWPORT = { once: true, margin: '-8%' } as const;
 const VIEWPORT_LATE = { once: true, margin: '-10%' } as const;
 
-/* ── Per-character reveal — one whileInView observer on the container */
+/* ── Per-character reveal - one whileInView observer on the container */
 
 function CharReveal({
   text,
@@ -230,7 +230,7 @@ export default function ConsoleShowcase() {
 
   return (
     <>
-      {/* ── Cinematic handoff — "Now control it." ───────────────── */}
+      {/* ── Cinematic handoff - "Now control it." ───────────────── */}
       <section ref={sectionRef} className="product-transition control-transition" aria-label="Product interface reveal">
         <div className="control-ghost" aria-hidden>CONTROL</div>
 

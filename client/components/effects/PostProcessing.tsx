@@ -13,7 +13,7 @@ interface Props {
 export default function PostProcessing({ scroll }: Props) {
   // React 19 passes `ref` as a regular prop, which ends up in the rest-spread
   // that @react-three/postprocessing serialises via JSON.stringify for its useMemo
-  // dependency — Three.js objects are circular and blow up. Bypass the wrapper
+  // dependency - Three.js objects are circular and blow up. Bypass the wrapper
   // entirely: create the raw postprocessing Effect instances and hand them to R3F
   // as <primitive object={...}>, which EffectComposer also accepts.
   const bloom = useMemo(() => new BloomEffect({

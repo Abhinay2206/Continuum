@@ -25,7 +25,7 @@ const posLambda   = 3.0;  // position: settles in ~0.5s
 const lookLambda  = 4.5;  // lookAt slightly faster than position
 const dutchLambda = 3.5;  // dutch roll
 
-// Scroll thresholds where scene/text changes happen — triggers a camera impulse
+// Scroll thresholds where scene/text changes happen - triggers a camera impulse
 const SCENE_BREAKS = [0.08, 0.20, 0.32, 0.44, 0.56, 0.68, 0.80, 0.90];
 // Alternating roll impulse magnitudes per scene break (degrees)
 const IMPULSE_MAGS = [6, -9, 7, -8, 10, -7, 8, -6];
@@ -39,7 +39,7 @@ export default function CameraRig({ scroll }: CameraRigProps) {
   const targetLook   = useRef(new THREE.Vector3(-1, -0.5, 0));
   const currentLook  = useRef(new THREE.Vector3(-1, -0.5, 0));
   const currentDutch = useRef(-8);
-  // Dutch impulse for scene transitions — decays to 0 each frame
+  // Dutch impulse for scene transitions - decays to 0 each frame
   const dutchImpulse = useRef(0);
   // Track which scene break was last crossed to avoid repeat firing
   const lastBreakIdx = useRef(-1);
@@ -64,7 +64,7 @@ export default function CameraRig({ scroll }: CameraRigProps) {
     const posAlpha    = 1 - Math.exp(-posLambda   * dt);
     const lookAlpha   = 1 - Math.exp(-lookLambda  * dt);
     const dutchAlpha  = 1 - Math.exp(-dutchLambda * dt);
-    // Impulse decays faster than the base dutch — snappy kick, smooth settle
+    // Impulse decays faster than the base dutch - snappy kick, smooth settle
     const impulseDecay = 1 - Math.exp(-8.0 * dt);
 
     // Detect scene-break crossing and fire a dutch impulse
@@ -89,7 +89,7 @@ export default function CameraRig({ scroll }: CameraRigProps) {
     const targetDutch = THREE.MathUtils.lerp(dutchValues[idx], dutchValues[idx + 1] ?? 0, frac);
     const drift       = THREE.MathUtils.lerp(driftValues[idx], driftValues[idx + 1] ?? 0, frac);
 
-    // Apply parallax drift — more chaotic early, resolves to stillness at end
+    // Apply parallax drift - more chaotic early, resolves to stillness at end
     targetPos.current.x += Math.sin(time * 0.19) * drift;
     targetPos.current.y += Math.cos(time * 0.13) * drift * 0.6;
 
@@ -105,7 +105,7 @@ export default function CameraRig({ scroll }: CameraRigProps) {
     // Smooth position (frame-rate independent)
     camera.position.lerp(targetPos.current, posAlpha);
 
-    // Smooth lookAt — dampened like position, prevents jarring orientation snaps
+    // Smooth lookAt - dampened like position, prevents jarring orientation snaps
     currentLook.current.lerp(targetLook.current, lookAlpha);
     camera.lookAt(currentLook.current);
   });

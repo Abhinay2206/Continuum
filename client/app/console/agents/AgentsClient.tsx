@@ -332,7 +332,7 @@ function RepoAnalysisPanel({ repo }: { repo: Repo }) {
           {action_plan.length === 0 ? (
             <div className="flex items-center gap-2 text-[12px] text-console-faint">
               <CheckCircle2 size={13} className="text-emerald-400" />
-              No critical actions needed — repository is in good health.
+              No critical actions needed - repository is in good health.
             </div>
           ) : (
             <div className="space-y-2">

@@ -201,7 +201,7 @@ export function ConsoleDashboard({
           </section>
         </div>
 
-        {/* Right — Activity */}
+        {/* Right - Activity */}
         <div>
           <div className="mb-2.5 flex items-center justify-between">
             <h2 className="text-[13px] font-semibold text-zinc-300">Activity</h2>

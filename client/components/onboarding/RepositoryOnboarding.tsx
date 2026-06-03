@@ -711,7 +711,7 @@ export function RepositoryOnboarding({ repoId, initialData }: Props) {
     return () => clearInterval(t);
   }, [repoId]);
 
-  // React to stage changes — add activity events
+  // React to stage changes - add activity events
   useEffect(() => {
     const prev = prevStageRef.current;
     prevStageRef.current = stageIdx;
@@ -830,7 +830,7 @@ export function RepositoryOnboarding({ repoId, initialData }: Props) {
                   <StageVisualization stageIdx={displayStage} />
                 </motion.div>
 
-                {/* Agent cards — shown once agents stage starts */}
+                {/* Agent cards - shown once agents stage starts */}
                 <AnimatePresence>
                   {displayStage >= 7 && (
                     <motion.div

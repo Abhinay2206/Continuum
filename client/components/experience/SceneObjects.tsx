@@ -13,7 +13,7 @@ function useVis(scroll: number, start: number, end: number, fade = 0.035) {
   return Math.min(fadeIn, fadeOut);
 }
 
-// ── Scene 1: Chaos shards — scattered tumbling icosahedra (red) ────────
+// ── Scene 1: Chaos shards - scattered tumbling icosahedra (red) ────────
 function ChaosShards({ scroll }: { scroll: number }) {
   const groupRef = useRef<THREE.Group>(null!);
   const vis = useVis(scroll, 0.08, 0.20);
@@ -52,7 +52,7 @@ function ChaosShards({ scroll }: { scroll: number }) {
   );
 }
 
-// ── Scene 2: Crystal octahedron — awakening form (cyan) ────────────────
+// ── Scene 2: Crystal octahedron - awakening form (cyan) ────────────────
 function CrystalOctahedron({ scroll }: { scroll: number }) {
   const outerRef = useRef<THREE.Mesh>(null!);
   const innerRef = useRef<THREE.Mesh>(null!);
@@ -83,7 +83,7 @@ function CrystalOctahedron({ scroll }: { scroll: number }) {
   );
 }
 
-// ── Scene 3: Torus knot — dependency graph (emerald) ───────────────────
+// ── Scene 3: Torus knot - dependency graph (emerald) ───────────────────
 function DependencyKnot({ scroll }: { scroll: number }) {
   const ref = useRef<THREE.Mesh>(null!);
   const vis = useVis(scroll, 0.32, 0.44);
@@ -106,7 +106,7 @@ function DependencyKnot({ scroll }: { scroll: number }) {
   );
 }
 
-// ── Scene 4: Orbiting agent orbs — 8 agents in formation (green) ───────
+// ── Scene 4: Orbiting agent orbs - 8 agents in formation (green) ───────
 function AgentOrbs({ scroll }: { scroll: number }) {
   const groupRef = useRef<THREE.Group>(null!);
   const coreRef = useRef<THREE.Mesh>(null!);
@@ -148,7 +148,7 @@ function AgentOrbs({ scroll }: { scroll: number }) {
   );
 }
 
-// ── Scene 5: Knowledge graph — point cloud lattice (violet) ────────────
+// ── Scene 5: Knowledge graph - point cloud lattice (violet) ────────────
 function KnowledgeGraph({ scroll }: { scroll: number }) {
   const groupRef = useRef<THREE.Group>(null!);
   const vis = useVis(scroll, 0.56, 0.68);
@@ -201,7 +201,7 @@ function KnowledgeGraph({ scroll }: { scroll: number }) {
   );
 }
 
-// ── Scene 6: Automation rings — concentric toruses (purple) ───────────
+// ── Scene 6: Automation rings - concentric toruses (purple) ───────────
 function AutomationRings({ scroll }: { scroll: number }) {
   const r1 = useRef<THREE.Mesh>(null!);
   const r2 = useRef<THREE.Mesh>(null!);
@@ -241,7 +241,7 @@ function AutomationRings({ scroll }: { scroll: number }) {
   );
 }
 
-// ── Scene 7: Order sphere — clean gridded orb (cyan) ───────────────────
+// ── Scene 7: Order sphere - clean gridded orb (cyan) ───────────────────
 function OrderSphere({ scroll }: { scroll: number }) {
   const outerRef = useRef<THREE.Mesh>(null!);
   const innerRef = useRef<THREE.Mesh>(null!);
@@ -279,7 +279,7 @@ function OrderSphere({ scroll }: { scroll: number }) {
   );
 }
 
-// ── Scene 8: Command center — pulsing monolith (white) ────────────────
+// ── Scene 8: Command center - pulsing monolith (white) ────────────────
 function CommandMonolith({ scroll }: { scroll: number }) {
   const coreRef = useRef<THREE.Mesh>(null!);
   const ring1 = useRef<THREE.Mesh>(null!);
@@ -320,7 +320,7 @@ function CommandMonolith({ scroll }: { scroll: number }) {
   );
 }
 
-// ── Ambient particle tunnel — sparse dust scattered along the flight path ─
+// ── Ambient particle tunnel - sparse dust scattered along the flight path ─
 function AmbientTunnel() {
   const ref = useRef<THREE.Points>(null!);
 
