@@ -1,6 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-console-bg: var(--console-bg);
+  --color-console-bg-soft: var(--console-bg-soft);
+  --color-console-bg-panel: var(--console-bg-panel);
+  --color-console-bg-panel-strong: var(--console-bg-panel-strong);
+
+  --color-console-border: var(--console-border);
+  --color-console-border-strong: var(--console-border-strong);
+
+  --color-console-text: var(--console-text);
+  --color-console-muted: var(--console-muted);
+  --color-console-faint: var(--console-faint);
+
+  --color-console-emerald: var(--console-emerald);
+  --color-console-amber: var(--console-amber);
+  --color-console-rose: var(--console-rose);
+  --color-console-sky: var(--console-sky);
+}
+
 *,
 *::before,
 *::after { box-sizing: border-box; }

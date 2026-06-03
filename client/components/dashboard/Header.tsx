@@ -8,6 +8,8 @@ import {
   UserCircle,
 } from 'lucide-react';
 
+import { useUser } from '@/components/providers/UserProvider';
+
 function formatPage(pathname: string) {
   const pathParts = pathname.split('/').filter(Boolean);
   const currentPage = pathParts.length > 1 ? pathParts[pathParts.length - 1] : 'console';
@@ -20,13 +22,14 @@ function formatPage(pathname: string) {
 export default function Header() {
   const pathname    = usePathname();
   const currentPage = formatPage(pathname);
+  const { workspace } = useUser();
 
   return (
     <header className="sticky top-0 z-40 flex h-[56px] shrink-0 items-center justify-between border-b border-white/[0.06] bg-black px-5 lg:px-6">
 
       {/* Breadcrumb */}
       <div className="hidden items-center gap-1.5 text-[13px] lg:flex">
-        <span className="text-zinc-600">Acme Corp</span>
+        <span className="text-zinc-600">{workspace.name}</span>
         <span className="mx-0.5 text-zinc-700">/</span>
         <span className="text-zinc-400">{currentPage}</span>
       </div>

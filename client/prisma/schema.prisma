@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String?
+  image     String?
+  githubId  String?
+  
+  workspaces    Workspace[]
+  githubAccount GithubAccount?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Workspace {
+  id        String       @id @default(cuid())
+  name      String
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  repositories Repository[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model GithubAccount {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id])
+  githubId            String   @unique
+  githubUsername      String
+  encryptedToken      String
+  encryptedTokenIv    String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Repository {
+  id              String             @id @default(cuid())
+  githubId        Int                @unique
+  name            String
+  fullName        String
+  url             String
+  defaultBranch   String
+  language        String?
+  visibility      String
+  size            Int
+  workspaceId     String
+  workspace       Workspace          @relation(fields: [workspaceId], references: [id])
+  imports         RepositoryImport[]
+  frameworks      RepositoryFramework[]
+  dependencies    RepositoryDependency[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+model RepositoryImport {
+  id           String      @id @default(cuid())
+  repositoryId String
+  repository   Repository  @relation(fields: [repositoryId], references: [id])
+  status       String      @default("pending") // pending, running, completed, failed
+  log          String?     @db.Text
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model RepositoryFramework {
+  id           String      @id @default(cuid())
+  repositoryId String
+  repository   Repository  @relation(fields: [repositoryId], references: [id])
+  name         String
+  version      String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model RepositoryDependency {
+  id           String      @id @default(cuid())
+  repositoryId String
+  repository   Repository  @relation(fields: [repositoryId], references: [id])
+  name         String
+  version      String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}

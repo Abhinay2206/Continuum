@@ -16,18 +16,21 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
+  LogOut,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { useUser } from '@/components/providers/UserProvider';
+import { signOut } from 'next-auth/react';
 
 const NAV_ITEMS = [
-  { name: 'Console',       href: '/console',               icon: LayoutDashboard, count: null  },
-  { name: 'Repositories',  href: '/console/repositories',   icon: Database,        count: 38   },
-  { name: 'AI Agents',     href: '/console/agents',         icon: Bot,             count: 12   },
-  { name: 'Bug Fixes',     href: '/console/bugs',           icon: Bug,             count: 3    },
-  { name: 'Pull Requests', href: '/console/prs',            icon: GitPullRequest,  count: 45   },
+  { name: 'Console',       href: '/console',               icon: LayoutDashboard, count: null },
+  { name: 'Repositories',  href: '/console/repositories',   icon: Database,        count: null },
+  { name: 'AI Agents',     href: '/console/agents',         icon: Bot,             count: null },
+  { name: 'Bug Fixes',     href: '/console/bugs',           icon: Bug,             count: null },
+  { name: 'Pull Requests', href: '/console/prs',            icon: GitPullRequest,  count: null },
   { name: 'Architecture',  href: '/console/architecture',   icon: Network,         count: null },
-  { name: 'Monitoring',    href: '/console/monitoring',     icon: Activity,        count: 1    },
+  { name: 'Monitoring',    href: '/console/monitoring',     icon: Activity,        count: null },
   { name: 'Command Line',  href: '/console/chat',           icon: MessageSquare,   count: null },
   { name: 'Analytics',     href: '/console/analytics',      icon: BarChart2,       count: null },
   { name: 'Settings',      href: '/console/settings',       icon: Settings,        count: null },
@@ -36,6 +39,7 @@ const NAV_ITEMS = [
 export default function Sidebar() {
   const pathname  = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { user, workspace } = useUser();
 
   return (
     <aside
@@ -84,9 +88,9 @@ export default function Sidebar() {
           <button className="mb-2 flex w-full items-center justify-between rounded-[6px] px-2 py-1.5 text-left transition-colors hover:bg-white/[0.04]">
             <div className="flex items-center gap-2">
               <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] bg-zinc-800 text-[10px] font-semibold text-zinc-300">
-                A
+                {workspace.name.charAt(0).toUpperCase()}
               </div>
-              <span className="text-[13px] font-medium text-zinc-300">Acme Corp</span>
+              <span className="text-[13px] font-medium text-zinc-300 truncate max-w-[110px]">{workspace.name}</span>
             </div>
             <ChevronDown size={12} className="text-zinc-600" />
           </button>
@@ -162,20 +166,40 @@ export default function Sidebar() {
       <div className="shrink-0 border-t border-white/[0.06] p-2">
         <div
           className={[
-            'flex items-center gap-2 rounded-[6px] px-2 py-1.5 transition-colors hover:bg-white/[0.04]',
+            'group flex items-center justify-between rounded-[6px] px-2 py-1.5 transition-colors hover:bg-white/[0.04]',
             collapsed ? 'justify-center' : '',
           ].join(' ')}
         >
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-[11px] font-semibold text-zinc-300">
-            A
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-[11px] font-semibold text-zinc-300">
+              {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+            </div>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[12px] font-medium text-zinc-300">{user.name || 'Engineer'}</div>
+                <div className="truncate text-[11px] text-zinc-600">{user.email}</div>
+              </div>
+            )}
           </div>
           {!collapsed && (
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[12px] font-medium text-zinc-300">Acme Corp</div>
-              <div className="truncate text-[11px] text-zinc-600">user@continuum.ai</div>
-            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[4px] text-zinc-500 opacity-0 transition-all hover:bg-white/[0.06] hover:text-zinc-300 group-hover:opacity-100"
+              title="Sign Out"
+            >
+              <LogOut size={13} />
+            </button>
           )}
         </div>
+        {collapsed && (
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="mt-1 mx-auto flex h-6 w-6 items-center justify-center rounded-[4px] text-zinc-600 transition-colors hover:bg-white/[0.06] hover:text-zinc-300"
+            title="Sign Out"
+          >
+            <LogOut size={13} />
+          </button>
+        )}
       </div>
     </aside>
   );

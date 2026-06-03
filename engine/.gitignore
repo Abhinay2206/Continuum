@@ -1,0 +1,7 @@
+.env
+venv/
+workspaces/
+__pycache__/
+*.pyc
+.DS_Store
+docs/api/schema.json

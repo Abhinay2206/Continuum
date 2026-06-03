@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, CheckCircle2, GitBranch, Hexagon, LockKeyhole, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, GitBranch, Hexagon, LockKeyhole, Sparkles, Loader2 } from 'lucide-react';
+import { signIn } from 'next-auth/react';
 
 const previewItems = [
   ['Agent fleet', '12 active'],
@@ -14,10 +16,70 @@ const previewItems = [
 
 export default function LoginPage() {
   const router = useRouter();
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleGithubLogin = async () => {
+    setIsLoading(true);
+    await signIn('github', { callbackUrl: '/console' });
+  };
+
+  const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/console');
+    setError('');
+    setIsLoading(true);
+
+    if (isLogin) {
+      const res = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (res?.error) {
+        setError('Invalid email or password');
+        setIsLoading(false);
+      } else {
+        router.push('/console');
+      }
+    } else {
+      // Sign up flow
+      try {
+        const res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password }),
+        });
+        const data = await res.json();
+        
+        if (!res.ok) {
+          setError(data.message || 'Error signing up');
+          setIsLoading(false);
+          return;
+        }
+
+        // Auto login after signup
+        const signInRes = await signIn('credentials', {
+          redirect: false,
+          email,
+          password,
+        });
+
+        if (signInRes?.error) {
+          setError('Error logging in after sign up');
+          setIsLoading(false);
+        } else {
+          router.push('/console');
+        }
+      } catch (err) {
+        setError('An unexpected error occurred');
+        setIsLoading(false);
+      }
+    }
   };
 
   return (
@@ -93,33 +155,65 @@ export default function LoginPage() {
                 <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg border border-white/[0.08] bg-black/20 text-sky-200">
                   <LockKeyhole size={20} />
                 </div>
-                <h1 className="text-3xl font-light tracking-tight">Welcome back</h1>
-                <p className="mt-2 text-sm leading-6 text-white/46">Sign in to enter the Continuum console.</p>
+                <h1 className="text-3xl font-light tracking-tight">{isLogin ? 'Welcome back' : 'Create an account'}</h1>
+                <p className="mt-2 text-sm leading-6 text-white/46">
+                  {isLogin ? 'Sign in to enter the Continuum console.' : 'Sign up to start building with autonomous AI agents.'}
+                </p>
               </div>
               <div className="space-y-3">
-                <button onClick={handleLogin} className="flex w-full items-center justify-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.045] px-4 py-3 text-sm font-medium text-white/86 transition-colors hover:bg-white/[0.075]">
+                <button disabled={isLoading} onClick={handleGithubLogin} className="flex w-full items-center justify-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.045] px-4 py-3 text-sm font-medium text-white/86 transition-colors hover:bg-white/[0.075] disabled:opacity-50">
                   <GitBranch size={18} className="text-white/68" />
                   Continue with GitHub
-                </button>
-                <button onClick={handleLogin} className="flex w-full items-center justify-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.045] px-4 py-3 text-sm font-medium text-white/86 transition-colors hover:bg-white/[0.075]">
-                  <Hexagon size={18} className="text-white/68" />
-                  Continue with SSO
                 </button>
                 <div className="flex items-center py-3">
                   <div className="h-px flex-1 bg-white/[0.08]" />
                   <span className="px-4 text-xs text-white/32">or</span>
                   <div className="h-px flex-1 bg-white/[0.08]" />
                 </div>
-                <form onSubmit={handleLogin} className="space-y-3">
-                  <input type="email" placeholder="Work email" className="h-12 w-full rounded-lg border border-white/[0.08] bg-black/20 px-4 text-sm text-white outline-none transition-all placeholder:text-white/30 focus:border-sky-300/35 focus:ring-2 focus:ring-sky-300/10" required />
-                  <button type="submit" className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-[#070810] transition-opacity hover:opacity-90">
-                    Sign in <ArrowRight size={16} />
+                <form onSubmit={handleCredentialsSubmit} className="space-y-3">
+                  {error && <div className="rounded-md border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</div>}
+                  {!isLogin && (
+                    <input 
+                      type="text" 
+                      placeholder="Full name" 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="h-12 w-full rounded-lg border border-white/[0.08] bg-black/20 px-4 text-sm text-white outline-none transition-all placeholder:text-white/30 focus:border-sky-300/35 focus:ring-2 focus:ring-sky-300/10" 
+                      required 
+                    />
+                  )}
+                  <input 
+                    type="email" 
+                    placeholder="Work email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 w-full rounded-lg border border-white/[0.08] bg-black/20 px-4 text-sm text-white outline-none transition-all placeholder:text-white/30 focus:border-sky-300/35 focus:ring-2 focus:ring-sky-300/10" 
+                    required 
+                  />
+                  <input 
+                    type="password" 
+                    placeholder="Password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-12 w-full rounded-lg border border-white/[0.08] bg-black/20 px-4 text-sm text-white outline-none transition-all placeholder:text-white/30 focus:border-sky-300/35 focus:ring-2 focus:ring-sky-300/10" 
+                    required 
+                    minLength={6}
+                  />
+                  <button disabled={isLoading} type="submit" className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-[#070810] transition-opacity hover:opacity-90 disabled:opacity-50">
+                    {isLoading ? <Loader2 size={16} className="animate-spin" /> : (isLogin ? 'Sign in' : 'Sign up')} 
+                    {!isLoading && <ArrowRight size={16} />}
                   </button>
                 </form>
+                <div className="pt-2 text-center text-sm text-white/50">
+                  {isLogin ? "Don't have an account? " : "Already have an account? "}
+                  <button type="button" onClick={() => { setIsLogin(!isLogin); setError(''); }} className="font-medium text-white transition-colors hover:text-sky-300">
+                    {isLogin ? 'Sign up' : 'Sign in'}
+                  </button>
+                </div>
               </div>
             </div>
             <p className="mt-6 text-center text-xs leading-5 text-white/34">
-              By signing in, you agree to our{' '}
+              By continuing, you agree to our{' '}
               <Link href="#" className="text-white/58 transition-colors hover:text-white">Terms</Link>
               {' '}and{' '}
               <Link href="#" className="text-white/58 transition-colors hover:text-white">Privacy Policy</Link>
