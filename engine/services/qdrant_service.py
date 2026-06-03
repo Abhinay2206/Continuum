@@ -2,11 +2,14 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models as qmodels
 from core.config import settings
 
+UPSERT_BATCH_SIZE = 100
+
 class QdrantService:
     def __init__(self):
         self.client = QdrantClient(
             url=settings.qdrant_url,
-            api_key=settings.qdrant_api_key
+            api_key=settings.qdrant_api_key,
+            timeout=60,
         )
         self.collection_name = settings.qdrant_collection_name
         self._ensure_collection()
@@ -30,14 +33,15 @@ class QdrantService:
             )
 
     def upsert_chunks(self, vectors: list, payloads: list, ids: list):
-        self.client.upsert(
-            collection_name=self.collection_name,
-            points=qmodels.Batch(
-                ids=ids,
-                vectors=vectors,
-                payloads=payloads
+        for i in range(0, len(ids), UPSERT_BATCH_SIZE):
+            self.client.upsert(
+                collection_name=self.collection_name,
+                points=qmodels.Batch(
+                    ids=ids[i:i + UPSERT_BATCH_SIZE],
+                    vectors=vectors[i:i + UPSERT_BATCH_SIZE],
+                    payloads=payloads[i:i + UPSERT_BATCH_SIZE],
+                )
             )
-        )
 
     def search(self, repo_id: str, query_vector: list, limit: int = 5):
         return self.client.search(

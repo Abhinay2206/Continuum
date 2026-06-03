@@ -45,8 +45,9 @@ export function ImportModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
       });
 
       if (res.ok) {
-        router.refresh();
+        const data = await res.json();
         onClose();
+        router.push(`/console/repositories/${data.repository.id}/onboarding`);
       } else {
         const error = await res.json();
         alert('Failed to import: ' + error.message);

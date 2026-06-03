@@ -27,6 +27,17 @@ async def reindex_repository(repo_id: str, request: ScanRequest, background_task
     )
     return {"repoId": repo_id, "status": "pending"}
 
+@router.post("/{repo_id}/reanalyze", response_model=ScanResponse)
+async def reanalyze_repository(repo_id: str, background_tasks: BackgroundTasks):
+    from services.database_service import database_service
+    # Only append a log line — don't reset status so existing agentResults stay visible
+    await database_service.update_repository_status(repo_id, "completed", log="Re-analysis triggered...")
+    background_tasks.add_task(
+        scanner_worker._run_agents,
+        repo_id
+    )
+    return {"repoId": repo_id, "status": "running"}
+
 @router.delete("/{repo_id}")
 async def delete_repository(repo_id: str):
     # Cleanup vectors and clone

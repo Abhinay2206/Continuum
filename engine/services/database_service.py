@@ -1,4 +1,5 @@
 import asyncpg
+import json
 from core.config import settings
 
 class DatabaseService:
@@ -12,6 +13,25 @@ class DatabaseService:
     async def close(self):
         if self.pool:
             await self.pool.close()
+
+    async def save_agent_results(self, repo_id: str, results: dict):
+        """Persist agent analysis results and mark the import as completed."""
+        if not self.pool:
+            await self.connect()
+
+        async with self.pool.acquire() as connection:
+            import_record = await connection.fetchrow(
+                'SELECT id FROM "RepositoryImport" WHERE "repositoryId" = $1 ORDER BY "createdAt" DESC LIMIT 1',
+                repo_id
+            )
+            if import_record:
+                await connection.execute(
+                    'UPDATE "RepositoryImport" SET "agentResults" = $1::jsonb, status = \'completed\', "updatedAt" = NOW() WHERE id = $2',
+                    json.dumps(results), import_record['id']
+                )
+                print(f"[DB] Agent results saved and status set to completed for repo {repo_id}")
+            else:
+                print(f"[DB] Warning: No RepositoryImport found for repo {repo_id} — results not saved")
 
     async def update_repository_status(self, repo_id: str, status: str, log: str = None):
         """
@@ -31,7 +51,7 @@ class DatabaseService:
             if import_record:
                 if log:
                     await connection.execute(
-                        'UPDATE "RepositoryImport" SET status = $1, log = concat(log, $2::text), "updatedAt" = NOW() WHERE id = $3',
+                        'UPDATE "RepositoryImport" SET status = $1, log = COALESCE(log, \'\') || $2::text, "updatedAt" = NOW() WHERE id = $3',
                         status, f"\n{log}", import_record['id']
                     )
                 else:
