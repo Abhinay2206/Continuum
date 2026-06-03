@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/:path((?!_next|api|.*\\.).+)",
+      "destination": "/404"
+    }
+  ]
+}

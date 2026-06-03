@@ -47,13 +47,19 @@ export async function POST(request: Request) {
     `;
 
     if (process.env.RESEND_API_KEY) {
-      await resend.emails.send({
-        from: 'Continuum Beta <beta@continuum.dev>', // Note: in a real app, this must be a verified domain
+      const { data, error } = await resend.emails.send({
+        from: 'Continuum Beta <onboarding@resend.dev>', // Must use onboarding@resend.dev unless domain is verified in Resend
         to: email,
         subject: 'Welcome to the Continuum Private Beta',
         html: emailHtml,
       });
-      console.log(`[Waitlist API] Premium email sent to ${email}`);
+      
+      if (error) {
+        console.error('[Waitlist API] Resend API Error:', error);
+        return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
+      }
+
+      console.log(`[Waitlist API] Premium email sent to ${email}`, data);
     } else {
       console.log(`[Waitlist API] Mocking email send to ${email} (RESEND_API_KEY not set)`);
       console.log(`[Waitlist API] Email Subject: Welcome to the Continuum Private Beta`);
