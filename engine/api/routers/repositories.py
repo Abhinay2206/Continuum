@@ -16,6 +16,11 @@ async def scan_repository(request: ScanRequest, background_tasks: BackgroundTask
     )
     return {"repoId": request.repoId, "status": "pending"}
 
+@router.get("/{repo_id}/files")
+async def get_repository_files(repo_id: str):
+    files = ingestion_service.traverse_repository(repo_id)
+    return {"repoId": repo_id, "files": files}
+
 @router.post("/{repo_id}/reindex", response_model=ScanResponse)
 async def reindex_repository(repo_id: str, request: ScanRequest, background_tasks: BackgroundTasks):
     # Same as scan, but you might clear old vectors first

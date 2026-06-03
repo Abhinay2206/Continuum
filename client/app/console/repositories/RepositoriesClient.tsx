@@ -18,6 +18,7 @@ import {
   Network,
   Activity,
   ExternalLink,
+  Code2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
@@ -325,6 +326,12 @@ function RepoDetail({
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[13px] font-semibold text-console-text">{repo.name}</h2>
           <div className="flex items-center gap-2">
+            <Link
+              href={`/console/workspace/${repo.id}`}
+              className="flex items-center gap-1.5 rounded-[6px] bg-[#1f6feb] px-2.5 py-1.5 text-[11px] font-medium text-white transition-colors hover:bg-[#388bfd]"
+            >
+              <Code2 size={11} /> Open Workspace
+            </Link>
             <button
               onClick={() => onSync(repo.id)}
               disabled={isSyncing === repo.id || isDeleting === repo.id}

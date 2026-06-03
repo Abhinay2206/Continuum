@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from api.routers import repositories, chat, agents
+from api import sandbox, websockets
 from services.database_service import database_service
 from services.cache_service import cache_service
 from metrics import metrics
@@ -53,6 +54,8 @@ def get_metrics():
 app.include_router(repositories.router, prefix="/repositories", tags=["Repositories"])
 app.include_router(chat.router, tags=["Chat"])
 app.include_router(agents.router, tags=["Agents"])
+app.include_router(sandbox.router, prefix="/sandbox", tags=["Sandbox"])
+app.include_router(websockets.router, prefix="/ws/sandbox", tags=["WebSockets"])
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=settings.debug)
