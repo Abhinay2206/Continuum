@@ -8,8 +8,8 @@ import { smoothstep } from '@/components/lib/math';
 
 // Smooth visibility 0→1→0 over a scroll range
 function useVis(scroll: number, start: number, end: number, fade = 0.035) {
-  const fadeIn  = smoothstep(Math.min((scroll - start) / fade, 1));
-  const fadeOut = smoothstep(Math.min((end   - scroll) / fade, 1));
+  const fadeIn = smoothstep(Math.min((scroll - start) / fade, 1));
+  const fadeOut = smoothstep(Math.min((end - scroll) / fade, 1));
   return Math.min(fadeIn, fadeOut);
 }
 
@@ -109,7 +109,7 @@ function DependencyKnot({ scroll }: { scroll: number }) {
 // ── Scene 4: Orbiting agent orbs — 8 agents in formation (green) ───────
 function AgentOrbs({ scroll }: { scroll: number }) {
   const groupRef = useRef<THREE.Group>(null!);
-  const coreRef  = useRef<THREE.Mesh>(null!);
+  const coreRef = useRef<THREE.Mesh>(null!);
   const vis = useVis(scroll, 0.44, 0.56);
   const COUNT = 8;
 
@@ -120,7 +120,7 @@ function AgentOrbs({ scroll }: { scroll: number }) {
     coreRef.current.scale.setScalar(vis * 0.35);
 
     groupRef.current.children.forEach((child, i) => {
-      const angle  = (i / COUNT) * Math.PI * 2 + t * (0.28 + i * 0.03);
+      const angle = (i / COUNT) * Math.PI * 2 + t * (0.28 + i * 0.03);
       const radius = 2.0 + Math.sin(t * 0.4 + i * 0.7) * 0.25;
       child.position.x = Math.cos(angle) * radius;
       child.position.y = Math.sin(t * 0.18 + i) * 0.55;
@@ -161,7 +161,7 @@ function KnowledgeGraph({ scroll }: { scroll: number }) {
     const c2 = new THREE.Color('#aa88ff');
     for (let i = 0; i < count; i++) {
       // distribute on a sphere
-      const phi   = Math.acos(2 * Math.random() - 1);
+      const phi = Math.acos(2 * Math.random() - 1);
       const theta = Math.random() * Math.PI * 2;
       const r = 1.6 + Math.random() * 0.8;
       pos[i * 3 + 0] = r * Math.sin(phi) * Math.cos(theta);
@@ -188,7 +188,7 @@ function KnowledgeGraph({ scroll }: { scroll: number }) {
       <points>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-          <bufferAttribute attach="attributes-color"    args={[colors,    3]} />
+          <bufferAttribute attach="attributes-color" args={[colors, 3]} />
         </bufferGeometry>
         <pointsMaterial size={0.1} vertexColors sizeAttenuation transparent opacity={0.9} />
       </points>
@@ -245,7 +245,7 @@ function AutomationRings({ scroll }: { scroll: number }) {
 function OrderSphere({ scroll }: { scroll: number }) {
   const outerRef = useRef<THREE.Mesh>(null!);
   const innerRef = useRef<THREE.Mesh>(null!);
-  const ringRef  = useRef<THREE.Mesh>(null!);
+  const ringRef = useRef<THREE.Mesh>(null!);
   const vis = useVis(scroll, 0.80, 0.90);
 
   useFrame(({ clock }) => {
@@ -282,8 +282,8 @@ function OrderSphere({ scroll }: { scroll: number }) {
 // ── Scene 8: Command center — pulsing monolith (white) ────────────────
 function CommandMonolith({ scroll }: { scroll: number }) {
   const coreRef = useRef<THREE.Mesh>(null!);
-  const ring1   = useRef<THREE.Mesh>(null!);
-  const ring2   = useRef<THREE.Mesh>(null!);
+  const ring1 = useRef<THREE.Mesh>(null!);
+  const ring2 = useRef<THREE.Mesh>(null!);
   const vis = useVis(scroll, 0.90, 1.0, 0.025);
 
   useFrame(({ clock }) => {
@@ -306,15 +306,15 @@ function CommandMonolith({ scroll }: { scroll: number }) {
     <>
       <mesh ref={coreRef} position={[0, 0, -77]}>
         <octahedronGeometry args={[1.1, 0]} />
-        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={1.2} />
+        <meshStandardMaterial color="#10B981" emissive="#10B981" emissiveIntensity={1.2} />
       </mesh>
       <mesh ref={ring1} position={[0, 0, -77]}>
         <torusGeometry args={[1.7, 0.04, 16, 100]} />
-        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.6} />
+        <meshStandardMaterial color="#10B981" emissive="#10B981" emissiveIntensity={0.6} />
       </mesh>
       <mesh ref={ring2} position={[0, 0, -77]}>
         <torusGeometry args={[2.4, 0.025, 16, 100]} />
-        <meshStandardMaterial color="#ccddff" emissive="#ccddff" emissiveIntensity={0.35} />
+        <meshStandardMaterial color="#10B981" emissive="#10B981" emissiveIntensity={0.35} />
       </mesh>
     </>
   );
@@ -334,7 +334,7 @@ function AmbientTunnel() {
       new THREE.Color('#10B981'),
       new THREE.Color('#8866FF'),
       new THREE.Color('#00F0FF'),
-      new THREE.Color('#ffffff'),
+      new THREE.Color('#10B981'),
     ];
     for (let i = 0; i < count; i++) {
       pos[i * 3 + 0] = (Math.random() - 0.5) * 14;
@@ -356,7 +356,7 @@ function AmbientTunnel() {
     <points ref={ref}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-        <bufferAttribute attach="attributes-color"    args={[colors,    3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <pointsMaterial size={0.045} vertexColors sizeAttenuation transparent opacity={0.45} />
     </points>
@@ -372,14 +372,14 @@ export default function SceneObjects({ scroll }: SceneObjectsProps) {
   return (
     <>
       <AmbientTunnel />
-      <ChaosShards      scroll={scroll} />
+      <ChaosShards scroll={scroll} />
       <CrystalOctahedron scroll={scroll} />
-      <DependencyKnot   scroll={scroll} />
-      <AgentOrbs        scroll={scroll} />
-      <KnowledgeGraph   scroll={scroll} />
-      <AutomationRings  scroll={scroll} />
-      <OrderSphere      scroll={scroll} />
-      <CommandMonolith  scroll={scroll} />
+      <DependencyKnot scroll={scroll} />
+      <AgentOrbs scroll={scroll} />
+      <KnowledgeGraph scroll={scroll} />
+      <AutomationRings scroll={scroll} />
+      <OrderSphere scroll={scroll} />
+      <CommandMonolith scroll={scroll} />
     </>
   );
 }

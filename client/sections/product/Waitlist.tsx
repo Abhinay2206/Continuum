@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 export default function Waitlist() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   return (
     <section className="product-section waitlist-section" aria-labelledby="waitlist-title">
@@ -28,9 +29,28 @@ export default function Waitlist() {
         ) : (
           <form
             className="waitlist-form"
-            onSubmit={(event) => {
+            onSubmit={async (event) => {
               event.preventDefault();
-              if (email.trim()) setSubmitted(true);
+              if (!email.trim() || loading) return;
+              setLoading(true);
+              try {
+                const response = await fetch('/api/waitlist', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: email.trim() }),
+                });
+                
+                if (response.ok) {
+                  setSubmitted(true);
+                } else {
+                  // If email exists (409) or error, show submitted anyway to not leak info or for simplicity
+                  setSubmitted(true);
+                }
+              } catch (error) {
+                console.error('Error joining waitlist:', error);
+              } finally {
+                setLoading(false);
+              }
             }}
           >
             <input
@@ -39,9 +59,10 @@ export default function Waitlist() {
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@company.com"
               required
+              disabled={loading}
             />
-            <button type="submit" data-magnetic>
-              Join Private Beta
+            <button type="submit" data-magnetic disabled={loading}>
+              {loading ? 'Joining...' : 'Join Private Beta'}
             </button>
           </form>
         )}

@@ -271,8 +271,28 @@ function AmbientNumber({ scroll }: { scroll: number }) {
 /* ─── Boot terminal ───────────────────────────────────────────── */
 
 function BootScene({ scroll }: { scroll: number }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const wasActiveRef = useRef(true);
   const isActive = scroll <= 0.08;
   const pct = Math.round((scroll / 0.08) * 100);
+
+  // Command text exit: fly-up and fade when boot ends (no blur — composited transforms only)
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (!isActive && wasActiveRef.current) {
+      wasActiveRef.current = false;
+      gsap.to(containerRef.current, {
+        y: -48,
+        scale: 0.94,
+        opacity: 0,
+        duration: 0.58,
+        ease: 'power3.in',
+      });
+    } else if (isActive && !wasActiveRef.current) {
+      wasActiveRef.current = true;
+      gsap.set(containerRef.current, { y: 0, scale: 1, opacity: 1 });
+    }
+  }, [isActive]);
 
   const rows = [
     { t: 0.006, prefix: 'SYS',   label: 'SYSTEM DIAGNOSTIC',    value: 'CHAOS DETECTED',  type: 'warn' },
@@ -285,8 +305,9 @@ function BootScene({ scroll }: { scroll: number }) {
 
   return (
     <div
+      ref={containerRef}
       className="boot-scene"
-      style={{ opacity: isActive ? 1 : 0, transition: 'opacity 0.45s ease', zIndex: 20 }}
+      style={{ zIndex: 20 }}
     >
       <div className="boot-terminal">
         <div className="boot-topbar">
@@ -312,7 +333,7 @@ function BootScene({ scroll }: { scroll: number }) {
           </div>
           <div className="boot-progress-wrap" style={{ opacity: scroll >= 0.054 ? 1 : 0, transition: 'opacity 0.4s ease' }}>
             <div className="boot-progress-label">
-              <code className="boot-progress-label">BOOT SEQUENCE</code>
+              <code className="boot-progress-text">BOOT SEQUENCE</code>
               <code className="boot-pct">{Math.min(pct, 100)}%</code>
             </div>
             <div className="boot-progress-bar">
@@ -386,21 +407,23 @@ function SceneSlide({
       activeRef.current = false;
       gsap.killTweensOf([...words]);
 
+      // Exit: words fly out upward (transform only — no blur to keep compositing cheap)
       gsap.to(words, {
-        yPercent: -38,
-        duration: 0.36,
-        stagger: { amount: 0.12, ease: 'power1.out' },
-        ease: 'power2.in',
+        yPercent: -65,
+        opacity: 0,
+        duration: 0.30,
+        stagger: { amount: 0.09, ease: 'power1.out' },
+        ease: 'power3.in',
         overwrite: true,
         onComplete: () => {
           if (c) {
             gsap.set(c, { autoAlpha: 0 });
-            gsap.set(words, { yPercent: 110 });
+            gsap.set(words, { yPercent: 110, opacity: 1 });
           }
         },
       });
-      if (sub) gsap.to(sub, { opacity: 0, duration: 0.2, overwrite: true });
-      if (kicker) gsap.to(kicker, { opacity: 0, x: scene.position === 'right' ? 12 : -12, duration: 0.2, overwrite: true });
+      if (sub) gsap.to(sub, { opacity: 0, y: -10, duration: 0.18, overwrite: true });
+      if (kicker) gsap.to(kicker, { opacity: 0, x: scene.position === 'right' ? 12 : -12, duration: 0.18, overwrite: true });
     }
   }, [isActive, scene.position]);
 
@@ -465,16 +488,22 @@ function GhostText({ scroll }: { scroll: number }) {
     if (!ghost || !ref.current) return;
     if (ghost === prevGhostRef.current) return;
     prevGhostRef.current = ghost;
+    // Exit old ghost text then enter new one
     gsap.fromTo(ref.current,
-      { opacity: 0, scale: 1.07 },
-      { opacity: 1, scale: 1, duration: 1.0, ease: 'power3.out' }
+      { opacity: 0, scale: 1.1 },
+      { opacity: 1, scale: 1, duration: 1.0, ease: 'power4.out' }
     );
   }, [ghost]);
 
   if (!ghost) return null;
 
   return (
-    <div ref={ref} className="ghost-text" style={{ color }} aria-hidden>
+    <div
+      ref={ref}
+      className="ghost-text"
+      style={{ WebkitTextStroke: `1px ${color}33`, color: 'transparent' }}
+      aria-hidden
+    >
       {ghost}
     </div>
   );

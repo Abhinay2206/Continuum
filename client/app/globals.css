@@ -43,10 +43,10 @@
   --text-panel-muted: rgba(151, 164, 196, 0.68);
   --shadow-nav: 0 22px 72px rgba(0, 0, 0, 0.40), 0 0 52px rgba(79, 123, 247, 0.10);
   --shadow-panel: 0 36px 120px rgba(0, 0, 0, 0.58), 0 0 90px rgba(79, 123, 247, 0.16);
-  --product-exp-bg: var(--product-exp-bg);
+  --product-exp-bg: #000000;
   --nav-link-hover: rgba(245, 248, 255, 0.96);
   --nav-link-hover-bg: rgba(255, 255, 255, 0.07);
-  --nav-link-color: var(--nav-link-color);
+  --nav-link-color: rgba(185, 195, 225, 0.65);
 }
 
 .light {
@@ -1388,7 +1388,8 @@ html { scrollbar-width: none; }
 
 .w {
   display: inline-block;
-  will-change: transform;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 .scene-line {
@@ -1470,7 +1471,8 @@ html { scrollbar-width: none; }
   user-select: none;
   white-space: nowrap;
   text-transform: uppercase;
-  will-change: transform, opacity;
+  will-change: transform, opacity, filter;
+  /* Color/stroke are set inline by GhostText component */
 }
 
 /* ─── Boot terminal ───────────────────────────────────────────── */
@@ -1496,6 +1498,8 @@ html { scrollbar-width: none; }
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,
     0 32px 80px rgba(0, 0, 0, 0.6),
     0 0 60px rgba(79, 123, 247, 0.08);
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 .boot-topbar {
@@ -1658,8 +1662,10 @@ html { scrollbar-width: none; }
   height: 3px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.18);
-  transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: width, height, background;
+  transition: height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: height, background;
 }
 
 .scene-dot--on {
@@ -1926,14 +1932,195 @@ html { scrollbar-width: none; }
   align-items: center;
 }
 
-.boot-progress-label code {
+.boot-progress-text {
   font-size: 9px;
   letter-spacing: 0.15em;
   color: rgba(180, 195, 230, 0.35);
 }
 
-.boot-progress-label .boot-pct {
+.boot-pct {
   font-size: 10px;
   font-weight: 700;
   color: rgba(120, 235, 194, 0.7);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTROL SECTION — "NOW CONTROL IT" CINEMATIC HANDOFF
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Character-split animation primitives ────────────────────── */
+
+.char-wrap {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.05em;
+  line-height: 1.05;
+}
+
+.char-inner {
+  display: inline-block;
+  will-change: transform, opacity;
+  transform: translateZ(0); /* GPU layer promotion */
+}
+
+/* ─── Control transition section overrides ────────────────────── */
+
+.control-transition {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Large background ghost word */
+.control-ghost {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) translateZ(0);
+  font-size: clamp(100px, 22vw, 340px);
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(79, 123, 247, 0.10);
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  z-index: 0;
+  text-transform: uppercase;
+  will-change: opacity;
+  animation: controlGhostDrift 14s ease-in-out infinite;
+}
+
+@keyframes controlGhostDrift {
+  /* Only animate opacity — no transform changes to avoid re-composite */
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+/* Sub-line reveal */
+.transition-sub-reveal {
+  font-size: clamp(13px, 1.4vw, 18px);
+  font-weight: 380;
+  letter-spacing: 0.01em;
+  color: rgba(130, 142, 170, 0.6);
+  margin-bottom: 1.5rem;
+}
+
+/* Large headline container */
+.control-headline {
+  font-size: clamp(58px, 9.5vw, 138px);
+  font-weight: 250;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+  color: rgba(240, 245, 255, 0.96);
+  margin: 0 0 2.25rem;
+  display: block;
+}
+
+.control-word {
+  display: block;
+}
+
+.control-word--accent .char-inner {
+  background: linear-gradient(135deg, #e8eeff 0%, #76b7ff 45%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Draw-in accent line ─────────────────────────────────────── */
+
+.control-accent-wrap {
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 1.75rem;
+}
+
+.control-accent-line {
+  height: 1px;
+  width: 100%;
+  transform-origin: left center;
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  background: linear-gradient(
+    90deg,
+    rgba(79, 123, 247, 0.9) 0%,
+    rgba(6, 182, 212, 0.75) 50%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px rgba(79, 123, 247, 0.35);
+}
+
+/* ─── Status readout strip ────────────────────────────────────── */
+
+.control-readout {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.control-readout__item {
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.control-readout__label {
+  color: rgba(180, 195, 230, 0.30);
+}
+
+.control-readout__sep {
+  color: rgba(180, 195, 230, 0.18);
+}
+
+.control-readout__value {
+  color: rgba(120, 235, 194, 0.80);
+}
+
+/* ─── Control marquee ─────────────────────────────────────────── */
+
+.control-marquee {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    black 6rem,
+    black calc(100% - 6rem),
+    transparent 100%
+  );
+}
+
+.control-marquee__track {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  white-space: nowrap;
+  animation: controlMarqueeScroll 28s linear infinite reverse;
+}
+
+.control-marquee__item {
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: rgba(79, 123, 247, 0.20);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+@keyframes controlMarqueeScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
 }

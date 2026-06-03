@@ -22,6 +22,7 @@ const ExperienceCanvas = dynamic(
 const SCROLL_HEIGHT_VH = 700;
 
 const FADE_DURATION = 700; // ms — cinematic fade-out before product reveal
+const AUTO_SCROLL_MS = 52000; // ms — duration for full auto-scroll 0 → 1
 
 export default function Home() {
   const [scroll, setScroll] = useState(0);
@@ -30,6 +31,17 @@ export default function Home() {
   const lenisRef   = useRef<Lenis | null>(null);
   const fadeTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Refs to avoid stale closures in RAF callbacks
+  const isFadingOutRef         = useRef(false);
+  const isCinematicFinishedRef = useRef(false);
+  const autoScrollRafRef       = useRef<number | null>(null);
+  const autoScrollStartRef     = useRef<number | null>(null);
+  const lastScrollUpdateRef    = useRef(0);     // timestamp of last setState call
+  const prevAutoProgressRef    = useRef(0);     // last committed progress value
+
+  useEffect(() => { isFadingOutRef.current = isFadingOut; }, [isFadingOut]);
+  useEffect(() => { isCinematicFinishedRef.current = isCinematicFinished; }, [isCinematicFinished]);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.history.scrollRestoration = 'manual';
@@ -37,6 +49,38 @@ export default function Home() {
     }
     return () => { if (fadeTimer.current) clearTimeout(fadeTimer.current); };
   }, []);
+
+  // RAF-driven auto-scroll: advances the cinematic without user input
+  useEffect(() => {
+    autoScrollStartRef.current = performance.now();
+
+    const tick = (now: number) => {
+      if (isCinematicFinishedRef.current || isFadingOutRef.current) return;
+
+      const progress = Math.min((now - autoScrollStartRef.current!) / AUTO_SCROLL_MS, 1);
+
+      // Throttle setState to ~30fps and only when progress meaningfully changed
+      // This prevents 60fps React re-renders of the entire component tree
+      const delta = progress - prevAutoProgressRef.current;
+      if (delta > 0.0008 && now - lastScrollUpdateRef.current >= 32) {
+        prevAutoProgressRef.current = progress;
+        lastScrollUpdateRef.current = now;
+        setScroll(prev => (progress > prev ? progress : prev));
+      }
+
+      if (progress >= 1) {
+        isFadingOutRef.current = true;
+        setIsFadingOut(true);
+        fadeTimer.current = setTimeout(() => setIsCinematicFinished(true), FADE_DURATION);
+        return;
+      }
+
+      autoScrollRafRef.current = requestAnimationFrame(tick);
+    };
+
+    autoScrollRafRef.current = requestAnimationFrame(tick);
+    return () => { if (autoScrollRafRef.current) cancelAnimationFrame(autoScrollRafRef.current); };
+  }, []); // mount-only — intentional
 
   const handleScroll = useCallback(() => {
     if (isCinematicFinished || isFadingOut) return;
@@ -56,7 +100,11 @@ export default function Home() {
       return;
     }
 
-    setScroll(Math.min(scrollTop / cinematicDistance, 1));
+    // Scroll only advances forward — preserves auto-scroll position when user isn't ahead
+    setScroll(prev => {
+      const next = Math.min(scrollTop / cinematicDistance, 1);
+      return next > prev ? next : prev;
+    });
   }, [isCinematicFinished, isFadingOut]);
 
   useEffect(() => {
