@@ -19,10 +19,10 @@ const ExperienceCanvas = dynamic(
 );
 
 /** Total scroll height (in vh units) - controls pacing */
-const SCROLL_HEIGHT_VH = 700;
+const SCROLL_HEIGHT_VH = 1000;
 
 const FADE_DURATION = 700; // ms - cinematic fade-out before product reveal
-const AUTO_SCROLL_MS = 52000; // ms - duration for full auto-scroll 0 → 1
+const AUTO_SCROLL_MS = 90000; // ms - duration for full auto-scroll 0 → 1
 
 export default function Home() {
   const [scroll, setScroll] = useState(0);

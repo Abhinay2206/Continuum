@@ -21,9 +21,9 @@ const KEYFRAMES = [
 
 // Exponential decay factor → frame-rate independent smooth damping
 // alpha = 1 - exp(-lambda * delta); higher lambda = tighter tracking
-const posLambda   = 3.0;  // position: settles in ~0.5s
-const lookLambda  = 4.5;  // lookAt slightly faster than position
-const dutchLambda = 3.5;  // dutch roll
+const posLambda   = 1.2;  // position: settles in ~1.5s
+const lookLambda  = 1.6;  // lookAt slightly faster than position
+const dutchLambda = 1.4;  // dutch roll
 
 // Scroll thresholds where scene/text changes happen - triggers a camera impulse
 const SCENE_BREAKS = [0.08, 0.20, 0.32, 0.44, 0.56, 0.68, 0.80, 0.90];
@@ -65,7 +65,7 @@ export default function CameraRig({ scroll }: CameraRigProps) {
     const lookAlpha   = 1 - Math.exp(-lookLambda  * dt);
     const dutchAlpha  = 1 - Math.exp(-dutchLambda * dt);
     // Impulse decays faster than the base dutch - snappy kick, smooth settle
-    const impulseDecay = 1 - Math.exp(-8.0 * dt);
+    const impulseDecay = 1 - Math.exp(-3.5 * dt);
 
     // Detect scene-break crossing and fire a dutch impulse
     const crossedIdx = SCENE_BREAKS.findIndex(thresh => t >= thresh) ;
