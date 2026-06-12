@@ -22,6 +22,7 @@ from abc import ABC, abstractmethod
 
 from llm.groq_service import groq_service
 from rag.retrieval import rag_retrieval
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +42,17 @@ class BaseAgent(ABC):
     def __init__(self) -> None:
         self.system_prompt = load_prompt(self.prompt_file)
         self.groq = groq_service
+        # Per-agent output-token cap (Gemini 2.5 Flash budget). Conservative by
+        # default; resolved from settings so limits live in one place.
+        self.max_tokens: int = settings.agent_max_tokens.get(self.name, 1500)
         # Keep rag reference for ad-hoc methods (explain, readme) outside orchestrator
         self.rag = rag_retrieval
+
+    async def analyze(self, user_prompt: str) -> object:
+        """Run the agent's JSON analysis within its token budget."""
+        return await self.groq.complete_json(
+            self.system_prompt, user_prompt, max_tokens=self.max_tokens
+        )
 
     # ── Primary interface (called by orchestrator) ────────────────────────────
 

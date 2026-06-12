@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 
 from agents.base_agent import BaseAgent, load_prompt
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ class DocsAgent(BaseAgent):
             static_hints,
         )
 
-        raw = await self.groq.complete_json(self.system_prompt, user_prompt)
+        raw = await self.analyze(user_prompt)
         return {
             "agent": self.name,
             "status": "completed",
@@ -71,7 +72,7 @@ class DocsAgent(BaseAgent):
         user_prompt = self.build_user_prompt(
             context, "Generate a professional README.md for this repository."
         )
-        raw = await self.groq.complete_json(readme_prompt, user_prompt)
+        raw = await self.groq.complete_json(readme_prompt, user_prompt, max_tokens=2000)
 
         return {
             "agent": self.name,
@@ -93,7 +94,7 @@ class DocsAgent(BaseAgent):
         context, _ = token_budget.truncate(context)
 
         user_prompt = self.build_user_prompt(context, f"Explain: {topic}")
-        raw = await self.groq.complete_json(explain_prompt, user_prompt)
+        raw = await self.groq.complete_json(explain_prompt, user_prompt, max_tokens=settings.qa_max_tokens)
 
         return {
             "agent": self.name,

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import shutil
 import stat
@@ -28,6 +30,30 @@ class IngestionService:
 
         Repo.clone_from(github_url, repo_path)
         return repo_path
+
+    def is_materialized(self, repo_id: str) -> bool:
+        """True if the repo is present on disk (non-empty working tree)."""
+        repo_path = self.get_repo_path(repo_id)
+        return os.path.isdir(repo_path) and bool(os.listdir(repo_path))
+
+    def ensure_repository(self, repo_id: str, github_url: str | None = None) -> str | None:
+        """
+        Guarantee the repository exists on disk for an interactive workspace.
+
+        The scanner deletes the clone after indexing to save disk, so the
+        workspace must re-materialize it on demand. Idempotent: if the working
+        tree is already present it is reused; otherwise it is freshly cloned.
+        Returns the repo path, or None if it could not be materialized.
+        """
+        if self.is_materialized(repo_id):
+            return self.get_repo_path(repo_id)
+        if not github_url:
+            return None
+        try:
+            return self.clone_repository(github_url, repo_id)
+        except Exception as exc:
+            print(f"[Ingestion] ensure_repository failed for {repo_id}: {exc}")
+            return None
 
     def delete_repository(self, repo_id: str):
         repo_path = self.get_repo_path(repo_id)

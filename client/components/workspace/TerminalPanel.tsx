@@ -12,7 +12,7 @@ export default function TerminalPanel({ repoId }: { repoId: string }) {
   const xtermRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
-  const { isTerminalOpen, sandboxStatus, toggleTerminal } = useWorkspaceStore();
+  const { isTerminalOpen, sandboxStatus, sandboxError, toggleTerminal } = useWorkspaceStore();
 
   useEffect(() => {
     if (!terminalRef.current || xtermRef.current) return;
@@ -83,6 +83,13 @@ export default function TerminalPanel({ repoId }: { repoId: string }) {
   useEffect(() => {
     if (!xtermRef.current) return;
 
+    if (sandboxStatus === 'failed') {
+      xtermRef.current.writeln(
+        `\x1b[31m✗ Sandbox unavailable\x1b[0m${sandboxError ? ` \x1b[2m— ${sandboxError}\x1b[0m` : ''}`
+      );
+      return;
+    }
+
     if (sandboxStatus === 'ready' && !wsRef.current) {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const ws = new WebSocket(`${protocol}//localhost:8000/ws/sandbox/${repoId}/terminal`);
@@ -106,7 +113,7 @@ export default function TerminalPanel({ repoId }: { repoId: string }) {
     return () => {
       if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
     };
-  }, [repoId, sandboxStatus]);
+  }, [repoId, sandboxStatus, sandboxError]);
 
   if (!isTerminalOpen) return null;
 

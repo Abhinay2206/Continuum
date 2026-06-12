@@ -47,6 +47,22 @@ AGENT_KEYWORDS: dict[str, list[str]] = {
     ],
 }
 
+# Explanatory phrasing — the user wants to *understand*, not audit. These run
+# the docs agent ALONE, even when the topic mentions "auth", "database", etc.
+# (e.g. "explain the authentication flow" must not spin up the security agent).
+EXPLANATORY_PHRASES: list[str] = [
+    "explain", "how does", "how do", "what is", "what does", "what are",
+    "describe", "walk me through", "tell me about", "overview of",
+    "give me an overview", "understand the", "documentation for",
+]
+
+# Audit verbs that override explanatory phrasing — "explain the security holes"
+# is genuinely a security request, not a docs request.
+AUDIT_OVERRIDE_KEYWORDS: list[str] = [
+    "vuln", "bug", "issue", "problem", "fix", "audit", "risk",
+    "smell", "refactor", "outdated", "review",
+]
+
 # Tasks that should trigger every health-relevant agent
 FULL_ANALYSIS_PHRASES: list[str] = [
     "full analysis", "analyze everything", "complete scan",
@@ -79,20 +95,27 @@ class IntentClassifier:
             if phrase in task_lower:
                 return IntentResult("full_analysis", HEALTH_AGENTS, True)
 
-        # 2. Score each agent by keyword hits
+        # 2. Explanatory shortcut — "explain/describe/how does X" runs docs ALONE
+        #    unless an explicit audit verb is also present.
+        is_explanatory = any(p in task_lower for p in EXPLANATORY_PHRASES)
+        has_audit_verb = any(k in task_lower for k in AUDIT_OVERRIDE_KEYWORDS)
+        if is_explanatory and not has_audit_verb:
+            return IntentResult("docs", ["docs"], False)
+
+        # 3. Score each agent by keyword hits
         scores: dict[str, int] = {}
         for agent, keywords in AGENT_KEYWORDS.items():
             score = sum(1 for kw in keywords if kw in task_lower)
             if score > 0:
                 scores[agent] = score
 
-        # 3. No clear signal → default to full health scan
+        # 4. No clear signal → default to full health scan
         if not scores:
             return IntentResult("full_analysis", HEALTH_AGENTS, True)
 
         selected = sorted(scores, key=lambda a: scores[a], reverse=True)
 
-        # 4. Domain-coupling rules (avoid redundant retrieval gaps)
+        # 5. Domain-coupling rules (avoid redundant retrieval gaps)
         #    Security findings almost always benefit from dependency context
         if "security" in selected and "dependency" not in selected:
             selected.append("dependency")

@@ -35,6 +35,7 @@ from agents.dependency_agent.dependency_agent import dependency_agent
 from orchestrator.intent_classifier import intent_classifier
 from orchestrator.shared_retrieval import shared_retrieval
 from orchestrator.token_budget import token_budget
+from orchestrator.finding_processor import finding_processor
 from services.cache_service import cache_service
 from services.static_analyzer import static_analyzer
 from metrics import metrics
@@ -103,11 +104,12 @@ class Orchestrator:
             return self._envelope(repo_id, task, selected, list(cached.values()))
 
         # ── Step 3: Shared context retrieval (parallel Qdrant) ────────────────
+        #   Per-agent chunk caps (settings.agent_chunk_limits) ensure Gemini
+        #   never receives more context than each domain needs.
         with metrics.timer("retrieval_ms"):
             contexts = await shared_retrieval.retrieve_for_agents(
                 repo_id,
                 uncached,
-                max_chunks_per_agent=5,
             )
 
         # ── Step 4: Static pre-analysis on retrieved chunks ───────────────────
@@ -150,6 +152,15 @@ class Orchestrator:
                     "findings": [],
                 })
             else:
+                # Quality gate: normalize + drop shallow, evidence-free findings
+                # before caching so cached results are already clean.
+                if result.get("status") == "completed" and isinstance(
+                    result.get("findings"), list
+                ):
+                    result["findings"] = finding_processor.process_agent_findings(
+                        result["findings"], agent_name
+                    )
+                    result["total"] = len(result["findings"])
                 final_fresh.append(result)
                 if result.get("status") == "completed":
                     await cache_service.set(repo_id, agent_name, task, result)
@@ -197,16 +208,20 @@ class Orchestrator:
         agent = _REGISTRY[agent_name]
         context, sources = contexts.get(agent_name, ("", []))
 
-        # Apply token budget — hard cap before sending to Groq
-        context, est_tokens = token_budget.truncate(context)
-        metrics.inc(f"tokens_estimated_{agent_name}", est_tokens)
-
         # Build per-agent static hints
         hints: dict = {}
         if agent_name == "security" and static_secrets:
             hints["static_findings"] = static_secrets
         elif agent_name == "dependency" and static_dep_info.get("count", 0) > 0:
             hints["static_info"] = static_dep_info
+            # Metadata-only: the manifest is already parsed into a structured
+            # package list, so we drop the raw code context entirely. Gemini
+            # reasons over the package metadata, not re-reads the manifest text.
+            context = ""
+
+        # Apply token budget — hard cap before sending to Gemini
+        context, est_tokens = token_budget.truncate(context)
+        metrics.inc(f"tokens_estimated_{agent_name}", est_tokens)
 
         try:
             with metrics.timer(f"{agent_name}_agent_ms"):

@@ -16,18 +16,6 @@ const TerminalPanel = dynamic(() => import('@/components/workspace/TerminalPanel
   ssr: false,
 });
 
-const mockFileTree: FileNode[] = [
-  {
-    id: 'src', name: 'src', path: '/src', type: 'directory',
-    children: [
-      { id: 'src/main.ts', name: 'main.ts', path: '/src/main.ts', type: 'file', content: 'console.log("Hello Continuum");' },
-      { id: 'src/app.tsx', name: 'app.tsx', path: '/src/app.tsx', type: 'file', content: 'export default function App() { return <div />; }' },
-    ]
-  },
-  { id: 'package.json', name: 'package.json', path: '/package.json', type: 'file', content: '{\n  "name": "continuum-test"\n}' },
-  { id: 'README.md', name: 'README.md', path: '/README.md', type: 'file', content: '# Continuum\nWorkspace test.' },
-];
-
 const EXT_COLORS: Record<string, string> = {
   ts: '#3B82F6', tsx: '#06B6D4', js: '#F59E0B', jsx: '#F59E0B',
   json: '#34D399', css: '#A78BFA', md: '#6B7280', py: '#F97316',
@@ -203,11 +191,12 @@ function buildFileTree(files: any[]): FileNode[] {
           if (res.ok) {
             setSandboxStatus('ready');
           } else {
-            setSandboxStatus('failed');
+            const detail = await res.json().catch(() => null);
+            setSandboxStatus('failed', detail?.detail ?? 'Sandbox creation failed');
           }
         } catch (error) {
           console.error("Failed to init sandbox:", error);
-          setSandboxStatus('failed');
+          setSandboxStatus('failed', 'Could not reach the engine');
         }
       };
 

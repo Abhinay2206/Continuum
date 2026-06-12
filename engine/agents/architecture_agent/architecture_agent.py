@@ -36,7 +36,7 @@ class ArchitectureAgent(BaseAgent):
             static_hints,
         )
 
-        raw = await self.groq.complete_json(self.system_prompt, user_prompt)
+        raw = await self.analyze(user_prompt)
 
         # Support both old (array) and new (object with findings + topology) formats
         if isinstance(raw, list):

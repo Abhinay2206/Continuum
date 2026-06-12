@@ -3,11 +3,12 @@ from fastapi import APIRouter
 from core.models import ChatRequest, ChatResponse, SearchRequest, SearchResult
 from services.qdrant_service import qdrant_service
 from services.embedding_service import embedding_service
-from groq import Groq
+from google import genai
+from google.genai import types
 from core.config import settings
 
 router = APIRouter()
-groq_client = Groq(api_key=settings.groq_api_key)
+_gemini_client = genai.Client(api_key=settings.gemini_api_key)
 
 @router.post("/search")
 async def search(request: SearchRequest):
@@ -54,17 +55,17 @@ async def chat(request: ChatRequest):
     
     user_prompt = f"Context:\n{context_str}\n\nQuestion: {request.question}"
     
-    # 4. LLM Generation using Groq
-    response = groq_client.chat.completions.create(
+    # 4. LLM Generation using Gemini (capped at the Q&A token budget)
+    response = _gemini_client.models.generate_content(
         model=settings.chat_model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        temperature=0.2
+        contents=user_prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            temperature=0.2,
+            max_output_tokens=settings.qa_max_tokens,
+        ),
     )
-    
-    answer = response.choices[0].message.content
+    answer = response.text
     
     return {
         "answer": answer,

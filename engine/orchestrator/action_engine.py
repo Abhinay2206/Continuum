@@ -6,6 +6,8 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from orchestrator.finding_processor import finding_processor
+
 
 SEVERITY_WEIGHT = {
     "critical": 20,
@@ -96,13 +98,24 @@ class ActionEngine:
         agent_results: list[dict] = orchestrator_output.get("agent_results", [])
 
         # --- Extract findings per domain ---
-        bug_findings = _extract_findings(agent_results, "bug")
-        security_findings = _extract_findings(agent_results, "security")
-        architecture_findings = _extract_findings(agent_results, "architecture")
         topology = _extract_topology(agent_results)
-        review_findings = _extract_findings(agent_results, "review")
-        dependency_findings = _extract_findings(agent_results, "dependency")
         docs_findings = _extract_findings(agent_results, "docs")
+
+        # Cross-agent deduplication: when multiple agents flag the same
+        # file+issue, the higher-priority domain keeps it and the rest drop
+        # their copy — so the report never shows one problem twice.
+        deduped = finding_processor.deduplicate({
+            "security": _extract_findings(agent_results, "security"),
+            "bug": _extract_findings(agent_results, "bug"),
+            "dependency": _extract_findings(agent_results, "dependency"),
+            "architecture": _extract_findings(agent_results, "architecture"),
+            "review": _extract_findings(agent_results, "review"),
+        })
+        bug_findings = deduped["bug"]
+        security_findings = deduped["security"]
+        architecture_findings = deduped["architecture"]
+        review_findings = deduped["review"]
+        dependency_findings = deduped["dependency"]
 
         # --- Calculate domain scores ---
         security_score = _score_from_penalty(_severity_penalty(security_findings) + _severity_penalty(dependency_findings))

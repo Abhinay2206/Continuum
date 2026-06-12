@@ -19,10 +19,11 @@ async def terminal_endpoint(websocket: WebSocket, repo_id: str):
     try:
         # Create an exec instance attached to a tty
         exec_id = container.client.api.exec_create(
-            container.id, 
-            cmd="/bin/bash", 
-            stdin=True, 
-            tty=True
+            container.id,
+            cmd="/bin/bash",
+            stdin=True,
+            tty=True,
+            workdir="/workspace",
         )["Id"]
         
         # Start the exec instance and get the raw socket

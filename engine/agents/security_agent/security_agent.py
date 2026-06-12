@@ -39,7 +39,7 @@ class SecurityAgent(BaseAgent):
             static_hints,
         )
 
-        raw = await self.groq.complete_json(self.system_prompt, user_prompt)
+        raw = await self.analyze(user_prompt)
         findings = raw if isinstance(raw, list) else raw.get("findings", [raw])
 
         # Merge static findings (already in static_hints) with LLM findings

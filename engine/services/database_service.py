@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncpg
 import json
 from core.config import settings
@@ -13,6 +15,24 @@ class DatabaseService:
     async def close(self):
         if self.pool:
             await self.pool.close()
+
+    async def get_repository_clone_info(self, repo_id: str) -> dict | None:
+        """
+        Return ``{"url": ..., "default_branch": ...}`` for a repository so the
+        workspace layer can re-clone it on demand. ``repo_id`` is Repository.id.
+        Returns None if the repository is unknown.
+        """
+        if not self.pool:
+            await self.connect()
+
+        async with self.pool.acquire() as connection:
+            row = await connection.fetchrow(
+                'SELECT url, "defaultBranch" FROM "Repository" WHERE id = $1',
+                repo_id,
+            )
+            if row:
+                return {"url": row["url"], "default_branch": row["defaultBranch"]}
+            return None
 
     async def save_agent_results(self, repo_id: str, results: dict):
         """Persist agent analysis results and mark the import as completed."""

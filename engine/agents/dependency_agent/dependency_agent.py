@@ -22,8 +22,12 @@ class DependencyAgent(BaseAgent):
         static_hints: dict | None = None,
     ) -> dict:
         sources = sources or []
+        static_hints = static_hints or {}
 
-        if not context.strip():
+        # Metadata-only mode: the orchestrator strips code context once the
+        # manifests are parsed, so proceed as long as we have either context or
+        # parsed package metadata to reason about.
+        if not context.strip() and not static_hints.get("static_info"):
             return {
                 "agent": self.name,
                 "status": "no_context",
@@ -40,7 +44,7 @@ class DependencyAgent(BaseAgent):
             static_hints,
         )
 
-        raw = await self.groq.complete_json(self.system_prompt, user_prompt)
+        raw = await self.analyze(user_prompt)
         findings = raw if isinstance(raw, list) else raw.get("findings", [raw])
         normalized = [
             f for f in findings

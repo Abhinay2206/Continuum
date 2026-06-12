@@ -26,6 +26,7 @@ from typing import Any
 
 from services.qdrant_service import qdrant_service
 from services.embedding_service import embedding_service
+from core.config import settings
 from metrics import metrics
 
 logger = logging.getLogger(__name__)
@@ -92,10 +93,17 @@ class SharedRetrieval:
         agent_names: list[str],
         limit_per_query: int = LIMIT_PER_QUERY,
         max_chunks_per_agent: int = MAX_CHUNKS_PER_AGENT,
+        chunk_limits: dict[str, int] | None = None,
     ) -> dict[str, tuple[str, list[str]]]:
         """
         Returns ``{agent_name: (context_string, source_files)}``.
+
+        ``chunk_limits`` overrides the per-agent chunk cap so each agent receives
+        only the context its domain needs (e.g. docs=5, architecture=10,
+        dependency=3). Falls back to ``settings.agent_chunk_limits`` then to
+        ``max_chunks_per_agent``.
         """
+        chunk_limits = chunk_limits or settings.agent_chunk_limits
         # ── Build query → [agent] map ─────────────────────────────────────────
         query_to_agents: dict[str, list[str]] = {}
         ordered_queries: list[str] = []
@@ -156,11 +164,12 @@ class SharedRetrieval:
         result: dict[str, tuple[str, list[str]]] = {}
 
         for agent in agent_names:
+            cap = chunk_limits.get(agent, max_chunks_per_agent)
             top_chunks = sorted(
                 agent_pools[agent].values(),
                 key=lambda c: c["score"],
                 reverse=True,
-            )[:max_chunks_per_agent]
+            )[:cap]
 
             blocks = [
                 f"File: {c['file_path']}\n```{c['language']}\n{c['chunk']}\n```"

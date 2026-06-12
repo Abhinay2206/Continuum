@@ -18,6 +18,14 @@ async def scan_repository(request: ScanRequest, background_tasks: BackgroundTask
 
 @router.get("/{repo_id}/files")
 async def get_repository_files(repo_id: str):
+    # The clone is deleted after indexing, so re-materialize it from the stored
+    # GitHub URL before reading the working tree — otherwise the file explorer
+    # would render empty for any repo that has finished scanning.
+    if not ingestion_service.is_materialized(repo_id):
+        from services.database_service import database_service
+        info = await database_service.get_repository_clone_info(repo_id)
+        ingestion_service.ensure_repository(repo_id, info["url"] if info else None)
+
     files = ingestion_service.traverse_repository(repo_id)
     return {"repoId": repo_id, "files": files}
 
